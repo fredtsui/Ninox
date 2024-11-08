@@ -1,0 +1,149 @@
+Round 1 button
+
+do as server
+	let curRec := this;
+	let xTeams := Points.RoundAnalysis[round = 1];
+	for loop1 in xTeams do
+		let xTeamsRank := loop1.RankForm;
+		let myCount := cnt(xTeams[RankForm < xTeamsRank]);
+		loop1.(placed := myCount + 1)
+	end;
+	switch leagueName_calc do
+	case "MLSJ":
+		(
+			let nextRndTeams := (Points.RoundAnalysis[round = 1 and placed < 5] order by -placed);
+			for team in nextRndTeams do
+				let newRA := (create TeamEventSumRoundAnalysis);
+				newRA.(
+					TeamEventSummary := team.TeamEventSummary;
+					round := "JO";
+					startOrder := index(nextRndTeams, team) + 1
+				)
+			end
+		)
+	case "GCL":
+		(
+			let nextRndTeams := (Points.RoundAnalysis[round = 1 and DNF_Form = 0] order by -placed);
+			for team in nextRndTeams do
+				let newRA := (create TeamEventSumRoundAnalysis);
+				newRA.(
+					TeamEventSummary := team.TeamEventSummary;
+					round := 2;
+					startOrder := index(nextRndTeams, team) + 1
+				)
+			end
+		)
+	end
+end
+
+Qtr Placing button
+
+do as server
+	let curRec := this;
+	let xTeams := Points.RoundAnalysis[round = "Q"];
+	for loop1 in xTeams do
+		let xTeamsRank := loop1.RankForm;
+		let myCount := cnt(xTeams[RankForm < xTeamsRank]);
+		loop1.(placed := myCount + 1)
+	end;
+	let nextRndTeams := (Points.RoundAnalysis[round = "Q" and placed < 9] order by -placed).TeamEventSummary;
+	let topFourTeams := (Season.ActiveTeams.TeamEventSummary['Event Order' = curRec.'Event Order' - 1 and CurrentStanding < 5] order by -CurrentStanding).ActiveTeams.TeamEventSummary['Event Order' = curRec.'Event Order'];
+	let semiTeams := array(nextRndTeams, topFourTeams);
+	for team in semiTeams do
+		let newRA := (create TeamEventSumRoundAnalysis);
+		newRA.(
+			TeamEventSummary := team;
+			round := "S";
+			startOrder := index(semiTeams, team) + 1
+		)
+	end
+end
+
+Semi Placing button
+
+do as server
+	let curRec := this;
+	let xTeams := Points.RoundAnalysis[round = "S"];
+	for loop1 in xTeams do
+		let xTeamsRank := loop1.RankForm;
+		let myCount := cnt(xTeams[RankForm < xTeamsRank]);
+		loop1.(placed := myCount + 1)
+	end;
+	let nextRndTeams := (Points.RoundAnalysis[round = "S" and placed < 7] order by -placed).TeamEventSummary;
+	for team in nextRndTeams do
+		let newRA := (create TeamEventSumRoundAnalysis);
+		newRA.(
+			TeamEventSummary := team;
+			round := "F1";
+			startOrder := index(nextRndTeams, team) + 1
+		)
+	end
+end
+
+F1 Placing button
+
+do as server
+	let curRec := this;
+	let xTeams := Points.RoundAnalysis[round = "F1"];
+	for loop1 in xTeams do
+		let xTeamsRank := loop1.RankForm;
+		let myCount := cnt(xTeams[RankForm < xTeamsRank]);
+		loop1.(placed := myCount + 1)
+	end;
+	let nextRndTeams := (Points.RoundAnalysis[round = "F1"] order by -placed).TeamEventSummary;
+	for team in nextRndTeams do
+		let newRA := (create TeamEventSumRoundAnalysis);
+		newRA.(
+			TeamEventSummary := team;
+			round := "F2";
+			startOrder := index(nextRndTeams, team) + 1
+		)
+	end
+end
+
+JO Placing button
+
+do as server
+	let curRec := this;
+	let xTeams := Points.RoundAnalysis[round = "JO"];
+	for loop1 in xTeams do
+		let xTeamsRank := loop1.RankForm;
+		let myCount := cnt(xTeams[RankForm < xTeamsRank]);
+		loop1.(placed := myCount + 1)
+	end;
+	let nextRndTeams := (Points.RoundAnalysis[round = "JO"] order by -placed).TeamEventSummary;
+	for team in nextRndTeams do
+		let newRA := (create TeamEventSumRoundAnalysis);
+		newRA.(
+			TeamEventSummary := team;
+			round := if team.RoundAnalysis[round = "JO"].placed > 2 then
+					"3PO"
+				else
+					"1PO"
+				end;
+			startOrder := if even(first(team.RoundAnalysis[round = "JO"].placed)) then
+					1
+				else
+					2
+				end
+		)
+	end
+end
+
+Create JO button
+
+do as server
+	let xJOTeams := Points.RoundAnalysis[round = 1 and placed < 5].TeamEventSummary;
+	for loop1 in xJOTeams do
+		for loop2 in Results[TeamID = loop1.TeamID] do
+			let JORec := duplicate(loop2);
+			JORec.(
+				'Round Type' := null;
+				'Start Order' := null;
+				Penalty := null;
+				Time := null;
+				EnterTime := null
+			)
+		end
+	end
+end
