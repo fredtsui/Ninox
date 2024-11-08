@@ -159,3 +159,67 @@ do as server
 		end
 	end
 end
+
+Create Line button
+
+#{new Create Line button on Event table 2024/11/08}#;
+let t := this;
+let xselectedTeamRec := record(ActiveTeams,number(t.'Select a Team'));
+let xTeamRec := xselectedTeamRec.TeamNames.Team;
+let xTMRec := record('Team Membership',number(t.'Select a Rider'));
+let riderResults := Results[TeamRiders = xTMRec];
+let teamResults := Results[TeamID = xselectedTeamRec.TeamID];
+#{create RiderEventSummary record}#;
+do as server
+	let xRER := xTMRec.RiderEventSummary[TeamEventSummary.Location = t];
+	if count(xRER) = 0 then
+		let checkTeamSummaryAgain := Points[ActiveTeams = xselectedTeamRec];
+		let createRiderSummary := (create RiderEventSummary);
+		createRiderSummary.(
+			'Team Membership' := xTMRec;
+			TeamEventSummary := first(checkTeamSummaryAgain)
+		)
+	end
+end;
+#{create Result line}#;
+let checkForExistingRec := switch leagueNum_calc do
+	case 1:
+		switch true do
+		case length(riderResults) = 0:
+			1
+		case length(riderResults['Round Type' = 1]) > 0 or
+		length(riderResults) = 0 and length(teamResults['Round Type' = 1]) = 2:
+			2
+		case length(riderResults['Round Type' = "F1"]) = 1:
+			3
+		case length(riderResults['Round Type' = "S"]) = 1:
+			4
+		case length(riderResults['Round Type' = "Q"]) = 1:
+			5
+		end
+	default:
+		if length(riderResults) = 0 or length(riderResults['Round Type' = 1]) = 1 then
+			1
+		end
+	end;
+if checkForExistingRec > 0 then
+	let getTeamRoundAnalysis := (Points[TeamID = xTeamRec.TeamID].RoundAnalysis order by roundRank);
+	let SO := (
+			let xLastRound := first(getTeamRoundAnalysis);
+			if length(teamResults['Round Type' = xLastRound.round]) < 1 then
+				0
+			else
+				length(teamResults['Round Type' = xLastRound.round])
+			end
+		);
+	let newResult := (create Results);
+	newResult.(
+		Location := t;
+		TeamRiders := xTMRec;
+		'Round Type' := first(getTeamRoundAnalysis.round);
+		'Start Order' := SO + 1
+	);
+	popupRecord(newResult)
+else
+	alert("No new record needed.")
+end
