@@ -1,0 +1,2 @@
+Change Manager from reference field to formula field.
+  change Events.'Create RA Recs button' to remove reference to Manager reference field
