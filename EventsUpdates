@@ -141,8 +141,8 @@ do as server
 				'Round Type' := null;
 				'Start Order' := null;
 				Penalty := null;
-				Time := null;
-				EnterTime := null
+				EnterTime := null;
+				Time := null
 			)
 		end
 	end
