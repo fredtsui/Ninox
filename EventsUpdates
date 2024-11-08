@@ -33,6 +33,18 @@ do as server
 				)
 			end
 		)
+	case "LN":
+		(
+			let nextRndTeams := (Points[not DNC].RoundAnalysis[round = 1] order by -placed);
+			for team in nextRndTeams do
+				let newRA := (create TeamEventSumRoundAnalysis);
+				newRA.(
+					TeamEventSummary := team.TeamEventSummary;
+					round := 2;
+					startOrder := index(nextRndTeams, team) + 1
+				)
+			end
+		)
 	end
 end
 
