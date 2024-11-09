@@ -169,6 +169,16 @@ let xTeamRec := xselectedTeamRec.TeamNames.Team;
 let xTMRec := record('Team Membership',number(t.'Select a Rider'));
 let riderResults := Results[TeamRiders = xTMRec];
 let teamResults := Results[TeamID = xselectedTeamRec.TeamID];
+let roundOneRecs := Points.RoundAnalysis[round = 1];
+let selectedTeamRoundOneRec := first(Points[TeamID = xselectedTeamRec.TeamID].RoundAnalysis[round = 1]);
+let roundOneStartOrder := if sum(roundOneRecs.startOrder) = 0 then
+		1
+	else
+		last(sort(roundOneRecs.startOrder)) + 1
+	end;
+if selectedTeamRoundOneRec.startOrder = null then
+	selectedTeamRoundOneRec.(startOrder := roundOneStartOrder)
+end;
 #{create RiderEventSummary record}#;
 do as server
 	let xRER := xTMRec.RiderEventSummary[TeamEventSummary.Location = t];
