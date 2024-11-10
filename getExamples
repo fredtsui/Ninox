@@ -1,0 +1,15 @@
+1) for some reason I can't put line 8 directly into something like:
+Date := date(get(this, "time" + loop1))
+it only worked in a variable
+
+let t := this;
+for loop1 in range(1, 3) do
+	if get(this, "time" + loop1) != null then
+		let x := date(get(this, "time" + loop1));
+		let newRec := (create DateData);
+		newRec.(
+			Data := t;
+			set(newRec, "Date", x)
+		)
+	end
+end
