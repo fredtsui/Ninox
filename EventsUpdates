@@ -233,3 +233,34 @@ if checkForExistingRec > 0 then
 else
 	alert("No new record needed.")
 end
+
+FIX 2ND ROUND START ORDER
+
+do as server
+	switch leagueName_calc do
+	case "MLSJ":
+		(
+			let nextRndTeams := (Points.RoundAnalysis[round = 1 and placed < 5] order by -placed);
+			for team in nextRndTeams do
+				let nxtRnd := team.TeamEventSummary.RoundAnalysis[round = "JO"];
+				nxtRnd.(startOrder := index(nextRndTeams, team) + 1)
+			end
+		)
+	case "GCL":
+		(
+			let nextRndTeams := (Points.RoundAnalysis[round = 1 and DNF_Form = 0] order by -placed);
+			for team in nextRndTeams do
+				let nxtRnd := team.TeamEventSummary.RoundAnalysis[round = 2];
+				nxtRnd.(startOrder := index(nextRndTeams, team) + 1)
+			end
+		)
+	case "LN":
+		(
+			let nextRndTeams := (Points[not DNC].RoundAnalysis[round = 1] order by -placed);
+			for team in nextRndTeams do
+				let nxtRnd := team.TeamEventSummary.RoundAnalysis[round = 2];
+				nxtRnd.(startOrder := index(nextRndTeams, team) + 1)
+			end
+		)
+	end
+end
