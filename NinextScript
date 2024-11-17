@@ -1,0 +1,41 @@
+var c := "";
+var v := "";
+var res := http("GET", "https://www.ninext.fr/_functions/ninext").result;
+var lastVersion := last((select '#NinextVersion' where length(Version) > 0 and length(Code) > 0) order by 'Num version');
+if res then
+	c := text(res.code);
+	v := text(res.version);
+	if count(select '#NinextVersion' where Version = v) = 0 then
+		(create '#NinextVersion').(
+			Version := v;
+			Code := c
+		)
+	end
+else
+	c := lastVersion.Code;
+	v := lastVersion.Version
+end;
+dialog("Ninext initialization " + v, html("<script ninext=''>
+" +
+c +
+"
+ninext.start({
+    badges: true,
+    viewEvent: true,
+    buttonEvent : true,
+    fieldsInspector: true,
+    nativeJS: true,
+    tableView: true,
+    debugTracer : true,
+    languages : false,
+    errorsViewer : true,
+    darkMode : false,
+	codeFinder : true,
+autoCloseDialog:  " +
+if res.version like "debug" then
+	"true"
+else
+	"false"
+end +
+" })
+</script>"), ["close"]);
