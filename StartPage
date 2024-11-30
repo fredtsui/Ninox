@@ -25,7 +25,8 @@ if latestSeasonRec.'Season Is?' = "Completed" then
 	let newRec := (create Seasons);
 	newRec.(
 		League := xLeague;
-		Year := latestSeasonRec.Year + 1
+		Year := latestSeasonRec.Year + 1;
+		'Stats Needed' := numbers(latestSeasonRec.'Stats Needed')
 	)
 else
 	alert("Season already created.")
