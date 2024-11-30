@@ -1,0 +1,3 @@
+//code to color the background of a row depending on standing
+//in case you don't want to use the table style
+{d.teams[i].standing}{d.teams[i].standing:print(.i):mod(2):ifEQ(0):show(#ffffff):elseShow(..mlsjGreen):color(row,background)} 
