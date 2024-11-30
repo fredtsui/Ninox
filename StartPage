@@ -14,3 +14,19 @@ if latestSeason.'Season Is?' != "Completed" then
 else
 	alert("Please create a new season.")
 end
+
+//New Season button
+
+let t := this;
+let xLeague := record(Leagues,number(League));
+let latestSeasonRec := last(xLeague.Seasons order by Year);
+let latestCompletedSeason := last(xLeague.Seasons['Season Is?' = "Completed"]);
+if latestSeasonRec.'Season Is?' = "Completed" then
+	let newRec := (create Seasons);
+	newRec.(
+		League := xLeague;
+		Year := latestSeasonRec.Year + 1
+	)
+else
+	alert("Season already created.")
+end
