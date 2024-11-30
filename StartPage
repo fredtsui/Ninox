@@ -1,0 +1,16 @@
+//Same Teams Button
+let t := this;
+let xLeague := record(Leagues,number(League));
+let allTeams := xLeague.Seasons[Year = year(today()) - 1].ActiveTeams;
+let latestSeason := last(xLeague.Seasons order by year_calc);
+if latestSeason.'Season Is?' != "Completed" then
+	for team in allTeams do
+		let newRec := (create ActiveTeams);
+		newRec.(
+			Seasons := latestSeason;
+			TeamNames := team.TeamNames
+		)
+	end
+else
+	alert("Please create a new season.")
+end
