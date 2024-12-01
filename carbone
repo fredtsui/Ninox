@@ -1,4 +1,4 @@
 //code to color the background of a row depending on standing
 //in case you don't want to use the table style
 //mod() divides the value in standing by 2 and if it equals 0 then it is an even number
-{d.teams[i].standing}{d.teams[i].standing:print(.i):mod(2):ifEQ(0):show(#ffffff):elseShow(..mlsjGreen):color(row,background)} 
+{d.teams[i].standing}{d.teams[i].standing:mod(2):ifEQ(0):show(#ffffff):elseShow(..mlsjGreen):color(row,background)} 
