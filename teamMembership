@@ -1,0 +1,91 @@
+MLSJ TeamMates field:
+
+if League = 2 then
+	let t := this;
+	let r := Rider;
+	let groupStatRecs := unique(teammates.atStats);
+	let xTMRRID := unique(RiderEventSummary.TeamMateResultRecIDs);
+	let newData := for loop2 in groupStatRecs do
+			let xTeamMateLinkRecIDs := RiderEventSummary.AllResultRecIDs[unique(RiderID) = r.RiderID and TeamMateID = loop2];
+			{
+				Name: join(loop2.teammates[RiderID != t.RiderID].shortName, " - "),
+				RdAtm: loop2.atm,
+				AvP: loop2.AvP,
+				Cl: loop2.clears,
+				JOQ: if count(loop2.TeamEventSummaryRecs.RoundAnalysis[round = "JO"]) > 0 then
+					count(loop2.TeamEventSummaryRecs.RoundAnalysis[round = "JO"])
+				else
+					0
+				end,
+				r1POQ: if count(loop2.TeamEventSummaryRecs.RoundAnalysis[round = "1PO"]) >= 1 then
+					count(loop2.TeamEventSummaryRecs.RoundAnalysis[round = "1PO"])
+				else
+					0
+				end
+			}
+		end;
+	let content := "
+" +
+		css +
+		"
+ <div class='tableFixHead'>
+<table>
+	<thead>
+		<tr>
+			<th class = tablehead>Name</th>
+			<th class = tablehead>Atm</th>
+			<th class = tablehead>AvP</th>
+			<th class = tablehead>R1Cl</th>
+			<th class = tablehead>JOQ</th>
+			<th class = tablehead>1POQ</th>
+		</tr>
+	</thead>
+	<tbody>
+	" +
+		(newData order by -number(RdAtm)).("<tr>
+			<td class = data>" +
+		Name +
+		"</td> 
+		<td class = data>" +
+		RdAtm +
+		"</td><td class = data>" +
+		AvP +
+		"</td><td class = data>" +
+		Cl +
+		"</td>
+	<td class = data>" +
+		JOQ +
+		"</td>
+	<td class = data>" +
+		r1POQ +
+		"</td>
+		</tr>
+		") +
+		"
+	</tbody>
+<tfoot>
+		<tr>
+			<th>Count: " +
+		count(newData) +
+		"</th>
+			<th class= tfootdata>" +
+		sum(newData.RdAtm) +
+		"</th>
+			<th class= tfootdata></th>
+			<th class= tfootdata>" +
+		sum(newData.Cl) +
+		"</th>
+			<th class= tfootdata>" +
+		sum(newData.JOQ) +
+		"</th>
+			<th class= tfootdata>" +
+		sum(newData.r1POQ) +
+		"</th>
+		</tr>
+	</tfoot>
+	
+</table>
+</div>
+";
+	html(content)
+end
