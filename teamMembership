@@ -43,7 +43,7 @@ if League = 2 then
 	<tbody>
 	" +
 		(newData order by -number(RdAtm)).("<tr>
-			<td class = data>" +
+			<td>" +
 		Name +
 		"</td> 
 		<td class = data>" +
