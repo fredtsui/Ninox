@@ -2,11 +2,9 @@ MLSJ TeamMates field:
 
 if League = 2 then
 	let t := this;
-	let r := Rider;
 	let groupStatRecs := unique(teammates.atStats);
-	let xTMRRID := unique(RiderEventSummary.TeamMateResultRecIDs);
 	let newData := for loop2 in groupStatRecs do
-			let xTeamMateLinkRecIDs := RiderEventSummary.AllResultRecIDs[unique(RiderID) = r.RiderID and TeamMateID = loop2];
+			let xTeamMateLinkRecIDs := RiderEventSummary.AllResultRecIDs[unique(RiderID) = t.Rider.RiderID and TeamMateID = loop2];
 			{
 				Name: join(loop2.teammates[RiderID != t.RiderID].shortName, " - "),
 				RdAtm: loop2.atm,
