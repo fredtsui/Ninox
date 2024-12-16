@@ -1,3 +1,14 @@
+Latest Changes
+
+//Choose a Team: Trigger after update
+'Choose a Rider' := null;
+'Choose a New Rider' := 0;
+'Select a Result' := null
+
+
+
+Old Changes
+
 //Same Teams Button
 let t := this;
 let xLeague := record(Leagues,number(League));
