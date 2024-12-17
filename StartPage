@@ -1,9 +1,59 @@
 Latest Changes
 
-//Choose a Team: Trigger after update
+//New Fields:
+Select a Result (dC)
+Penalities (num)
+Time (text)
+Reason (choice) 
+	ELM
+	RET
+	DNS
+	DSQ
+Course (dMC)
+let xEvent := record(Events,number(Event));
+let xResult := record(Results,number('Select a Result'));
+let xRound := switch number(League) do
+	case 2:
+		if contains(["JO", "1PO", "3PO"], xResult.'Round Type') then
+			"2"
+		else
+			"1"
+		end
+	default:
+		xResult.'Round Type'
+	end;
+xEvent.Course[Round = xRound]
+
+//Add Results button:
+do as server
+	let t := this;
+	let xResult := record(Results,number('Select a Result'));
+	let x := length(Time);
+	let subxL := substring(Time), x - 2, x);
+	let subxR := substring(Time), 0, x - 2);
+	xResult.(
+		Penalty := t.Penalties;
+		Time := number(subxR + "." + subxL);
+		Reason := number(t.Reason)
+	);
+	for rail in numbers(Course) do
+		let newRec := (create penaltyAt);
+		newRec.(
+			Results := xResult;
+			Obstacle := rail
+		)
+	end
+end
+
+
+//Update Trigger after updates to include:
 'Choose a Rider' := null;
 'Choose a New Rider' := 0;
-'Select a Result' := null
+'Select a Result' := 0;
+Penalties := null;
+Time := null;
+Reason := 0;
+Course := 0
 
 
 
