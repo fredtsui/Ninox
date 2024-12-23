@@ -1,0 +1,5 @@
+let c := Table2;
+let lm := numbers(pMultichoice);
+c[var v := numbers(cMultichoice);
+	count(v[var subv := this;
+				count(lm[= subv]) > 0]) > 0]
