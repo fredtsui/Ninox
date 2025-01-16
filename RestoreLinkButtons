@@ -1,0 +1,58 @@
+Partners
+----
+do as server
+	let getModTable := (select Partners);
+	let getTable1 := (select People);
+	let getTable2 := (select Horses);
+	for rec in getModTable do
+		let array1 := split(rec.LinkID, ",");
+		let item1 := item(array1, 0);
+		let item2 := item(array1, 1);
+		let item1array := split(item1, ":");
+		let getPeopleID := item(item1array, 1);
+		let item2array := split(item2, ":");
+		let getHorseID := item(item2array, 1);
+		let xMRec1 := first(getTable1[RiderID = getPeopleID]);
+		let xMRec2 := first(getTable2[HorseID = getHorseID]);
+		rec.(
+			Riders := xMRec1;
+			Horse := xMRec2
+		)
+	end
+end
+----
+
+People
+----
+do as server
+	let getCountry := (select Country);
+	for rec in select People do
+		let xCountry := first(getCountry[CountryID = rec.LinkID]);
+		rec.(Country := xCountry)
+	end
+end
+----
+
+PeopleNames
+-----
+do as server
+  let getModTable := (select PeopleNames);
+	let getTable1 := (select People);
+	for rec in getModTable do
+		let xMRec := first(getTable1[RiderID = rec.LinkID]);
+		rec.(Person := xMRec)
+	end
+end
+-----
+
+TeamNames
+----
+do as server
+	let getAllTeams := (select Teams);
+	for rec in select TeamNames do
+		let xTeam := first(getAllTeams[TeamID = rec.LinkID]);
+		rec.(Team := xTeam)
+	end
+end
+----
+
