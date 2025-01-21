@@ -22,6 +22,22 @@ do as server
 end
 ----
 
+partnerStats
+----
+do as server
+	let getModTable := (select partnerStats);
+	let getTable1 := (select Partners);
+	for rec in getModTable do
+		let array1 := split(rec.LinkID, ",");
+		let item2 := item(array1, 1);
+		let item2array := split(item2, ":");
+		let getPartnerID := item(item2array, 1);
+		let xMRec1 := first(getTable1[PartnerID = getPartnerID]);
+		rec.(Partners := xMRec1)
+	end
+end
+----
+
 People
 ----
 do as server
@@ -44,6 +60,47 @@ do as server
 	end
 end
 -----
+
+pnStats
+----
+do as server
+	let getModTable := (select pnStats);
+	let getTable1 := (select PeopleNames);
+	for rec in getModTable do
+		let array1 := split(rec.LinkID, ",");
+		let item2 := item(array1, 1);
+		let item2array := split(item2, ":");
+		let getPeopleNameID := item(item2array, 1);
+		let xMRec1 := first(getTable1[PeopleNameID = getPeopleNameID]);
+		rec.(PeopleNames := xMRec1)
+	end
+end
+----
+
+Team Membership
+----
+do as server
+	let getModTable := (select 'Team Membership');
+	let getTable1 := (select PeopleNames);
+	let getTable2 := (select ActiveTeams);
+	for rec in getModTable do
+		let array1 := split(rec.LinkID, ",");
+		let item1 := item(array1, 0);
+		let item2 := item(array1, 1);
+		let item1array := split(item1, ":");
+		let getID1 := item(item1array, 1);
+		let item2array := split(item2, ":");
+		let getID2 := item(item2array, 1);
+		let xMRec1 := first(getTable1[PeopleNameID = getID1]);
+		let xMRec2 := first(getTable2[ActiveTeamID = getID2]);
+		rec.(
+			Rider := xMRec1;
+			SeasonsActive := xMRec2
+		)
+	end
+end
+----
+
 
 TeamNames
 ----
