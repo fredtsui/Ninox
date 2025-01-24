@@ -122,17 +122,6 @@ do as server
 end
 ----
 
-People
-----
-do as server
-	let getCountry := (select Country);
-	for rec in select People do
-		let xCountry := first(getCountry[CountryID = rec.LinkID]);
-		rec.(Country := xCountry)
-	end
-end
-----
-
 PeopleNames
 -----
 do as server
