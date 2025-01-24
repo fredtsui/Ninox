@@ -166,6 +166,30 @@ do as server
 end
 ----
 
+RiderEventSummary
+----
+do as server
+	let getModTable := (select RiderEventSummary);
+	let getTable1 := (select TeamEventSummary);
+	let getTable2 := (select 'Team Membership');
+	for rec in getModTable do
+		let array1 := split(rec.LinkID, ",");
+		let item1 := item(array1, 0);
+		let item2 := item(array1, 1);
+		let item1array := split(item1, ":");
+		let getID1 := item(item1array, 1);
+		let item2array := split(item2, ":");
+		let getID2 := item(item2array, 1);
+		let xMRec1 := first(getTable1[TeamEventSummaryID = getID1]);
+		let xMRec2 := first(getTable2[TeamMembershipID = getID2]);
+		rec.(
+			TeamEventSummary := xMRec1;
+			'Team Membership' := xMRec2
+		)
+	end
+end
+----
+
 RidersAnnounced
 ----
 do as server
@@ -244,6 +268,17 @@ do as server
 end
 ----
 
+TeamEventSummaryRoundAnalysis
+----
+do as server
+	let getModTable := (select TeamEventSumRoundAnalysis);
+	let getTable1 := (select TeamEventSummary);
+	for rec in getModTable do
+		let xMRec := first(getTable1[TeamEventSummaryID = rec.LinkID]);
+		rec.(TeamEventSummary := xMRec)
+	end
+end
+----
 
 Team Membership
 ----
@@ -277,6 +312,30 @@ do as server
 	for rec in select TeamNames do
 		let xTeam := first(getAllTeams[TeamID = rec.LinkID]);
 		rec.(Team := xTeam)
+	end
+end
+----
+
+tmStats
+----
+do as server
+	let getModTable := (select tmStats);
+	let getTable2 := (select 'Team Membership');
+	let getTable3 := (select Partners)
+	for rec in getModTable do
+		let array1 := split(rec.LinkID, ",");
+		let item2 := item(array1, 1);
+		let item2array := split(item2, ":");
+		let getID2 := item(item2array, 1);
+		let item3 := item(array1, 2);
+		let item3array := split(item3, ":");
+		let getID3 := item(item3array, 1);
+		let xMRec2 := first(getTable2[TeamMembershipID = getID2]);
+		let xMRec3 := first(getTable3[PartnerID = getID3]);
+		rec.(
+			'Team Membership' := xMRec2;
+			Partners := xMRec3
+		)
 	end
 end
 ----
