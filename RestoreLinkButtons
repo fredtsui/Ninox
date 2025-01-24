@@ -22,6 +22,22 @@ do as server
 end
 ----
 
+Course
+----
+do as server
+	let getModTable := (select Course);
+	let getTable1 := (select Events);
+	for rec in getModTable do
+		let array1 := split(rec.LinkID, ",");
+		let item2 := item(array1, 0);
+		let item2array := split(item2, ":");
+		let getMRecID := item(item2array, 1);
+		let xMRec1 := first(getTable1[EventID = getMRecID]);
+		rec.(Location := xMRec1)
+	end
+end
+----
+
 EventRoundAnalysis
 ----
 do as server
