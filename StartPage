@@ -1,5 +1,41 @@
 Latest Changes
 
+Update Trigger after update to include:
+Season := 0;
+
+Add New Team button
+let t := this;
+let xLeague := record(Leagues,number(League));
+let latestSeason := last(xLeague.Seasons order by year_calc);
+let checkArray := [xLeague, latestSeason];
+if count(checkArray) = 2 then
+	let newTeamRec := (create Teams);
+	newTeamRec.(League := xLeague);
+	record(Teams,number(newTeamRec)).(LinkID := League.recID);
+	let newTeamNameRec := (create TeamNames);
+	newTeamNameRec.(
+		Team := newTeamRec;
+		Name := t.'Enter New Team Name'
+	);
+	record(TeamNames,number(newTeamNameRec)).(LinkID := Team.TeamID);
+	let newSeasonActiveRec := (create ActiveTeams);
+	newSeasonActiveRec.(
+		Seasons := latestSeason;
+		TeamNames := newTeamNameRec
+	);
+	record(ActiveTeams,number(newSeasonActiveRec)).(LinkID := "S:" + Seasons.recID + "," + "TN:" + TeamNames.recID);
+	'Enter New Team Name' := null
+else
+	alert("Select a League")
+end
+
+//New Start Season fields
+Choose a Site
+
+
+
+
+OLD CHANGES
 //New Fields:
 Select a Result (dC)
 Penalities (num)
