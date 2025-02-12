@@ -1,0 +1,37 @@
+Leagues: 
+	ActiveTeams: Season: , TeamName:
+	atStats: Season: , ActiveTeam:
+	Course: Event: , Obstacle:
+	EventRoundAnalysis: Event:
+	Events: Season: , Site: , Designer:
+	Logo: Team:
+	Managers: ActiveTeam: , Manager:
+	partnerStats: STAT: , Partner:
+	penaltyAt: Result: , Obstacle:
+	pnStats: STAT: , PeopleName:
+	Results: Event: , TeamMembership: , Partner
+	RiderEventSummary: TeamEventSummary: , TeamMembership: 
+	RiderGroups: League:
+	RidersAnnounced: Event: , TeamMembership:
+	RoundTypes: League:
+	Seasons: League:
+	seasonStats: STAT: , Season:
+	TeamMembership: ActiveTeam: , PeopleName:
+	TeamEventSummary: Event: , ActiveTeam:
+	TeamEventSumRoundAnalysis: TeamEventSummary:
+	teammates: atStat: , TeamMembeship: 
+	TeamNames: Team:
+	Teams: League:
+	tmStats: STAT: , TeamMembership: , Partner:
+	tnStats: STAT: , TeamName: 
+
+People:
+	PeopleNames: People:
+
+Country:
+	City: Country:
+	Site: City:
+
+Partners: People: , Horse:
+
+Designers: Country:
