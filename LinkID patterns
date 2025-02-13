@@ -15,26 +15,26 @@ Leagues:
 	RidersAnnounced: Event: , TeamMembership: done
 	RoundTypes: League: done
 	Seasons: League: done
-	seasonStats: STAT: , Season:
+	seasonStats: STAT: , Season: done
 	TeamMembership: ActiveTeam: , PeopleName: done
-	TeamEventSummary: Event: , ActiveTeam:
-	TeamEventSumRoundAnalysis: TeamEventSummary:
-	teammates: atStat: , TeamMembeship: 
-	TeamNames: Team:
-	Teams: League:
-	tmStats: STAT: , TeamMembership: , Partner:
-	tnStats: STAT: , TeamName: 
+	TeamEventSummary: Event: , ActiveTeam: done
+	TeamEventSumRoundAnalysis: TeamEventSummary: done
+	teammates: atStat: , TeamMembeship: done
+	TeamNames: Team: done
+	Teams: League: done
+	tmStats: STAT: , TeamMembership: , Partner: done
+	tnStats: STAT: , TeamName: done
 
 People:
-	PeopleNames: People:
+	PeopleNames: People: done
 
 Country:
-	City: Country:
-	Site: City:
+	City: Country: done
+	Site: City: done
 
-Partners: People: , Horse:
+Partners: People: , Horse: done
 
-Designers: Country:
+Designers: Country: done
 
 Sample Code
 
@@ -52,7 +52,6 @@ LinkID := formatJSON(getJ)
 
 New Record Trigger:
 let newJ := {
-	STAT: 0,
-	ActiveTeam: 0
+
 };
 LinkID := formatJSON(newJ)
