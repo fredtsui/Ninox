@@ -1,22 +1,22 @@
 Leagues: 
-	ActiveTeams: Season: , TeamName:
-	atStats: Season: , ActiveTeam:
-	Course: Event: , Obstacle:
-	EventRoundAnalysis: Event:
-	Events: Season: , Site: , Designer:
-	Logo: Team:
-	Managers: ActiveTeam: , Manager:
-	partnerStats: STAT: , Partner:
-	penaltyAt: Result: , Obstacle:
-	pnStats: STAT: , PeopleName:
-	Results: Event: , TeamMembership: , Partner
-	RiderEventSummary: TeamEventSummary: , TeamMembership: 
-	RiderGroups: League:
-	RidersAnnounced: Event: , TeamMembership:
-	RoundTypes: League:
-	Seasons: League:
+	ActiveTeams: Season: , TeamName: done
+	atStats: STAT: , ActiveTeam: done
+	Course: Event: , Obstacle: done
+	EventRoundAnalysis: Event: done
+	Events: Season: , Site: , Designer: done
+	Logo: Team: done
+	Managers: ActiveTeam: , Manager: done
+	partnerStats: STAT: , Partner: done
+	penaltyAt: Result: , Obstacle: done
+	pnStats: STAT: , PeopleName: done
+	Results: Event: , TeamMembership: , Partner: done
+	RiderEventSummary: TeamEventSummary: , TeamMembership: done
+	RiderGroups: League: done
+	RidersAnnounced: Event: , TeamMembership: done
+	RoundTypes: League: done
+	Seasons: League: done
 	seasonStats: STAT: , Season:
-	TeamMembership: ActiveTeam: , PeopleName:
+	TeamMembership: ActiveTeam: , PeopleName: done
 	TeamEventSummary: Event: , ActiveTeam:
 	TeamEventSumRoundAnalysis: TeamEventSummary:
 	teammates: atStat: , TeamMembeship: 
@@ -35,3 +35,24 @@ Country:
 Partners: People: , Horse:
 
 Designers: Country:
+
+Sample Code
+
+Bulk Edit:
+let newJ := {
+	Season: Seasons.recID,
+	TeamName: TeamNames.recID
+};
+formatJSON(newJ)
+
+Reference Field Trigger:
+let getJ := parseJSON(LinkID);
+setItem(getJ, "Season", Seasons.recID);
+LinkID := formatJSON(getJ)
+
+New Record Trigger:
+let newJ := {
+	STAT: 0,
+	ActiveTeam: 0
+};
+LinkID := formatJSON(newJ)
