@@ -5,15 +5,11 @@ do as server
 	let getTable1 := (select ActiveTeams);
 	let getTable2 := (select RiderGroups);
 	for rec in getModTable do
-		let array1 := split(rec.LinkID, ",");
-		let item1 := item(array1, 1);
-		let item2 := item(array1, 2);
-		let item1array := split(item1, ":");
-		let getID1 := item(item1array, 1);
-		let item2array := split(item2, ":");
-		let getID2 := item(item2array, 1);
-		let xMRec1 := first(getTable1[ActiveTeamID = getID1]);
-		let xMRec2 := first(getTable2[RiderGroupID = getID2]);
+		let pJ := parseJSON(rec.LinkID);
+		let getID1 := item(pJ, "Event");
+		let getID2 := item(pJ, "Obstacle");
+		let xMRec1 := first(getTable1[recID = getID1]);
+		let xMRec2 := first(getTable2[recID = getID2]);
 		rec.(
 			ActiveTeams := xMRec1;
 			RiderGroups := xMRec2
@@ -27,13 +23,17 @@ Course
 do as server
 	let getModTable := (select Course);
 	let getTable1 := (select Events);
+	let getTable2 := (select obstacleType);
 	for rec in getModTable do
-		let array1 := split(rec.LinkID, ",");
-		let item2 := item(array1, 0);
-		let item2array := split(item2, ":");
-		let getMRecID := item(item2array, 1);
-		let xMRec1 := first(getTable1[EventID = getMRecID]);
-		rec.(Location := xMRec1)
+		let pJ := parseJSON(rec.LinkID);
+		let getID1 := item(pJ, "Event");
+		let getID2 := item(pJ, "Obstacle");
+		let xMRec1 := first(getTable1[recID = getID1]);
+		let xMRec2 := first(getTable2[recID = getID2]);
+		rec.(
+			Location := xMRec1;
+			obstacleType := xMRec2
+		)
 	end
 end
 ----
@@ -44,7 +44,9 @@ do as server
 	let getModTable := (select EventRoundAnalysis);
 	let getTable1 := (select Events);
 	for rec in getModTable do
-		let xMRec := first(getTable1[EventID = rec.LinkID]);
+		let pJ := parseJSON(rec.LinkID);
+		let getID1 := item(pJ, "Event");
+		let xMRec := first(getTable1[recID = getID1]);
 		rec.(Events := xMRec)
 	end
 end
@@ -57,15 +59,11 @@ do as server
 	let getTable1 := (select ActiveTeams);
 	let getTable2 := (select PeopleNames);
 	for rec in getModTable do
-		let array1 := split(rec.LinkID, ",");
-		let item1 := item(array1, 0);
-		let item2 := item(array1, 1);
-		let item1array := split(item1, ":");
-		let getID1 := item(item1array, 1);
-		let item2array := split(item2, ":");
-		let getID2 := item(item2array, 1);
-		let xMRec1 := first(getTable1[ActiveTeamID = getID1]);
-		let xMRec2 := first(getTable2[PeopleNameID = getID2]);
+		let pJ := parseJSON(rec.LinkID);
+		let getID1 := item(pJ, "ActiveTeam");
+		let getID2 := item(pJ, "Manager");
+		let xMRec1 := first(getTable1[recID = getID1]);
+		let xMRec2 := first(getTable2[recID = getID2]);
 		rec.(
 			ActiveTeams := xMRec1;
 			Manager := xMRec2
@@ -82,10 +80,10 @@ do as server
 	let getTable2 := (select Horses);
 	for rec in getModTable do
 		let pJ := parseJSON(rec.LinkID);
-		let getPeopleID := item(pJ, "People");
-		let getHorseID := item(pJ, "Horse");
-		let xMRec1 := first(getTable1[RiderID = getPeopleID]);
-		let xMRec2 := first(getTable2[HorseID = getHorseID]);
+		let getID1 := item(pJ, "People");
+		let getID2 := item(pJ, "Horse");
+		let xMRec1 := first(getTable1[RiderID = getID1]);
+		let xMRec2 := first(getTable2[HorseID = getID2]);
 		rec.(
 			Riders := xMRec1;
 			Horse := xMRec2
