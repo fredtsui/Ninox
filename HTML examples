@@ -12,3 +12,10 @@ let tbleBody := "<tbody>
 	" +
 	(xNewData order by -number(Atm)).("<tr onclick=ui.popupRecord('" + dID + "','" + rID +
 	"')>
+
+---Double Quote and Three Dash and ui.popupRecord---
+<td " +
+    ---
+ onclick="ui.popupRecord('{ recordId }')"
+    --- +
+    ">
