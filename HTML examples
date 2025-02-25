@@ -1,0 +1,14 @@
+---Three Dash and ui.popupRecord---
+let tbleBody := xNewData.---
+		<tr onclick=ui.popupRecord('{ dID }','{ rID }')>
+		<td>{ Name }</td>
+		<td></td>
+		<td></td>
+		</tr>
+	---;
+
+---Double Quote and ui.popupRecord---
+let tbleBody := "<tbody>
+	" +
+	(xNewData order by -number(Atm)).("<tr onclick=ui.popupRecord('" + dID + "','" + rID +
+	"')>
