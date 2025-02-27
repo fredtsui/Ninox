@@ -18,9 +18,22 @@ for teammateRec in Points.ActiveTeams.atStats.teammates[var getJ := parseJSON(Li
 	setItem(getJ, "atStat", teammateRec.atStats.recID);
 	setItem(getJ, "TeamMembership", teammateRec.'Team Membership'.recID);
 	teammateRec.(LinkID := formatJSON(getJ))
+end;
+for tmStatRec in Results[DNScheck = null].TeamRiders.tmStats[var getJSON := parseJSON(LinkID); getJSON.STAT = null] do
+	let getJ := parseJSON(tmStatRec.LinkID);
+	setItem(getJ, "STAT", tmStatRec.STATs.recID);
+	setItem(getJ, "TeamMembership", tmStatRec.'Team Membership'.recID);
+	setItem(getJ, "Partner", tmStat.Rec.Partners.recID);
+	tmStatRec.(LinkID := formatJSON(getJ))
 end
 
-
+for tesRARec in Season.ActiveTeams.TeamEventSummary.RoundAnalysis[var getJSON := parseJSON(LinkID);
+	getJSON.ActiveTeam = null] do
+	let getJ := parseJSON(tesRec.LinkID);
+	setItem(getJ, "Event", tesRec.Location.recID);
+	setItem(getJ, "ActiveTeam", tesRec.ActiveTeams.recID);
+	tesRec.(LinkID := formatJSON(getJ))
+end
 
 ----OLD CODE----
 
