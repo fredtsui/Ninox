@@ -1,0 +1,413 @@
+let t := this;
+let allRG := Season.League.RiderGroups;
+let leagueStatRec := first(Season.League.STATS);
+#{create ActiveTeams stat recs}#;
+do as deferred
+	for atTopLoop in Points.ActiveTeams do
+		"delete atTopLoop.atStats";
+		#{create event level stat recs}#;
+		let atloop1Range := ["e", "rd", "rn"];
+		for atloop1 in atloop1Range do
+			if length(atTopLoop.atStats[level = atloop1 and round = "e"]) = 0 then
+				let newATStatRec := (create atStats);
+				newATStatRec.(
+					STATS := leagueStatRec;
+					ActiveTeams := atTopLoop;
+					level := atloop1;
+					round := "e";
+					LinkID := formatJSON({
+							STAT: leagueStatRec.recID,
+							ActiveTeam: atTopLoop.recID,
+							RiderGroup: RiderGroups.recID
+						})
+				)
+			end
+		end;
+		#{create round and rider level stat recs}#;
+		for atloop2 in unique(atTopLoop.'Team Membership'.Results[DNScheck = null].'Round Type') do
+			let loop2LevelArray := ["rd", "rn"];
+			for atloop2a in loop2LevelArray do
+				if length(atTopLoop.atStats[level = atloop2a and round = atloop2]) = 0 then
+					let newATStatRec := (create atStats);
+					newATStatRec.(
+						STATS := leagueStatRec;
+						ActiveTeams := atTopLoop;
+						level := atloop2a;
+						round := atloop2;
+						LinkID := formatJSON({
+								STAT: leagueStatRec.recID,
+								ActiveTeam: atTopLoop.recID,
+								RiderGroup: RiderGroups.recID
+							})
+					)
+				end
+			end
+		end;
+		#{create RiderGroup and group level Stat recs}#;
+		let xRiderGroups := unique(for loop1 in atTopLoop.TeamEventSummary[Location = t].RoundAnalysis[not (round = "1PO" or round = "3PO")] do
+					loop1.RiderIDs
+				end);
+		for ridergroup in xRiderGroups do
+			if count(allRG[text(riderIDs) = text(ridergroup)]) = 0 then
+				let newRG := (create RiderGroups);
+				newRG.(
+					Leagues := t.leagueNum_calc;
+					riderIDs := ridergroup;
+					LinkID := formatJSON({
+							League: leagueStatRec.recID
+						})
+				)
+			end;
+			let getRounds := unique(atTopLoop.TeamEventSummary[Location = t].RoundAnalysis[var g := RiderIDs;
+						text(g) = text(ridergroup)].round);
+			for roundloop in getRounds do
+				let getRG := first(atTopLoop.Seasons.League.RiderGroups[text(riderIDs) = text(ridergroup)]);
+				if count(atTopLoop.atStats[level = "g" and RiderGroups = getRG and round = roundloop]) = 0 then
+					let newAtStat := (create atStats);
+					newAtStat.(
+						STATS := first(atTopLoop.atStats.STATS);
+						ActiveTeams := atTopLoop;
+						RiderGroups := getRG;
+						level := "g";
+						round := roundloop;
+						LinkID := formatJSON({
+								STAT: leagueStatRec.recID,
+								ActiveTeam: atTopLoop.recID,
+								RiderGroup: getRG.recID
+							})
+					);
+					for rider in ridergroup do
+						let findTMRec := first(atTopLoop.'Team Membership'[RiderID = rider]);
+						let newTeammateRec := (create teammates);
+						newTeammateRec.(
+							atStats := newAtStat;
+							'Team Membership' := findTMRec;
+							LinkID := formatJSON({
+									atStat: newAtStat.recID,
+									TeamMembership: findTMRec.recID
+								})
+						)
+					end
+				end
+			end
+		end;
+		#{create stat recs for each Team Membership rec}#;
+		for tmloop1 in Results[DNScheck = null].TeamRiders do
+			"delete tmloop1.tmStats";
+			let tmResultsRec := tmloop1.Results[DNScheck = null];
+			if length(tmloop1.tmStats[round = "e"]) = 0 then
+				for loop1 in ["e", "rd"] do
+					let newStatRec := (create tmStats);
+					newStatRec.(
+						STATS := leagueStatRec;
+						'Team Membership' := tmloop1;
+						level := loop1;
+						round := "e";
+						LinkID := formatJSON({
+								STAT: leagueStatRec.recID,
+								TeamMembership: tmloop1.recID,
+								Partner: Partners.recID
+							})
+					)
+				end
+			end;
+			for loop2 in unique(tmResultsRec.'Round Type') do
+				if length(tmloop1.tmStats[level = "rd" and round = loop2]) = 0 then
+					let newStatRec := (create tmStats);
+					newStatRec.(
+						STATS := leagueStatRec;
+						'Team Membership' := tmloop1;
+						level := "rd";
+						round := loop2;
+						LinkID := formatJSON({
+								STAT: leagueStatRec.recID,
+								TeamMembership: tmloop1.recID,
+								Partner: Partners.recID
+							})
+					)
+				end
+			end;
+			"Create Start Order stat recs";
+			let getStartOrder := unique(tmResultsRec.'Start Order');
+			for tmSOTopLoop in getStartOrder do
+				let getSORounds := unique(tmResultsRec['Start Order' = tmSOTopLoop].'Round Type');
+				let soRoundArray := array(["e"], getSORounds);
+				"create round level records by start order";
+				for tmSORnLoop in soRoundArray do
+					let checkExistingRoundRec := tmloop1.tmStats[level = tmSOTopLoop and round = tmSORnLoop];
+					if checkExistingRoundRec = 0 and (tmSORnLoop != "1PO" and tmSORnLoop != "3PO") then
+						let newStatRec := (create tmStats);
+						newStatRec.(
+							STATS := leagueStatRec;
+							'Team Membership' := tmloop1;
+							level := tmSOTopLoop;
+							round := tmSORnLoop;
+							LinkID := formatJSON({
+									STAT: leagueStatRec.recID,
+									TeamMembership: tmloop1.recID,
+									Partner: Partners.recID
+								})
+						)
+					end
+				end
+			end;
+			"create Horse (partner) stat recs";
+			let getPartners := unique(tmResultsRec.Partners);
+			for tmPartnerTopLoop in getPartners do
+				let getPartnerStatRecs := tmloop1.tmStats[Partners = tmPartnerTopLoop];
+				let getRounds := unique(Results[Partners = tmPartnerTopLoop].'Round Type');
+				let horseRoundArray := array(["e"], getRounds);
+				"create round level records by Partner";
+				for tmHorseRdLoop in horseRoundArray do
+					let checkExistingRoundRec := getPartnerStatRecs[level = "h" and round = tmHorseRdLoop];
+					if checkExistingRoundRec = 0 then
+						let newStatRec := (create tmStats);
+						newStatRec.(
+							STATS := leagueStatRec;
+							'Team Membership' := tmloop1;
+							Partners := tmPartnerTopLoop;
+							level := "h";
+							round := tmHorseRdLoop;
+							AgeOfHorse := year(today()) - tmPartnerTopLoop.Horse.'Birth Year';
+							LinkID := formatJSON({
+									STAT: leagueStatRec.recID,
+									TeamMembership: tmloop1.recID,
+									Partner: tmPartnerTopLoop.recID
+								})
+						)
+					end
+				end
+			end
+		end
+	end
+end;
+#{Create TeamName stat recs}#;
+do as deferred
+	let teamNameRecs := unique(Points.ActiveTeams.TeamNames);
+	for tnTopLoop in teamNameRecs do
+		"delete tnTopLoop.tnStats";
+		"create e level stat recs";
+		let levelArray := ["e", "rd", "rn"];
+		let loop1Range := switch t.leagueNum_calc do
+			case 2:
+				[0]
+			default:
+				[0, 1, 2]
+			end;
+		for loop1 in loop1Range do
+			if length(tnTopLoop.tnStats[level = item(levelArray, loop1) and round = "e"]) = 0 then
+				let newTNStatRec := (create tnStats);
+				newTNStatRec.(
+					STATS := leagueStatRec;
+					TeamNames := tnTopLoop;
+					level := item(levelArray, loop1);
+					round := "e";
+					LinkID := formatJSON({
+							STAT: leagueStatRec.recID,
+							TeamName: tnTopLoop.recID
+						})
+				)
+			end
+		end;
+		"create round level stat recs";
+		for loop2 in unique(tnTopLoop.SeasonsActive.TeamEventSummary[Location = t].RoundAnalysis.round) do
+			let loop2LevelArray := if loop2 = "1PO" or loop2 = "3PO" then
+					["rn"]
+				else
+					["rd", "rn"]
+				end;
+			for loop2a in loop2LevelArray do
+				if length(tnTopLoop.tnStats[level = loop2a and round = loop2]) = 0 then
+					let newTnStatRec := (create tnStats);
+					newTnStatRec.(
+						STATS := leagueStatRec;
+						TeamNames := tnTopLoop;
+						level := loop2a;
+						round := loop2;
+						LinkID := formatJSON({
+								Stat: leagueStatRec.recID,
+								TeamName: tnTopLoop.recID
+							})
+					)
+				end
+			end
+		end
+	end
+end;
+#{create stat recs for each PeopleName rec}#;
+do as deferred
+	let peopleNameRecs := unique(Results[DNScheck = null].TeamRiders.Rider);
+	for peopleLoop in peopleNameRecs do
+		"delete peopleLoop.pnStats[STATS = leagueStatRec]";
+		let seasonResultRecs := Points.ActiveTeams.'Team Membership'[Rider = peopleLoop].Results[DNScheck = null];
+		let league := t.leagueNum_calc;
+		let levelArray := switch league do
+			case 2:
+				["e"]
+			default:
+				["e", "rd"]
+			end;
+		"create event level records";
+		if length(seasonResultRecs) > 0 then
+			for loop1 in levelArray do
+				let checkExistingRecs := peopleLoop.pnStats[STATS = leagueStatRec and level = loop1 and round = "e"];
+				if checkExistingRecs = 0 then
+					let newPNStatRec := (create pnStats);
+					newPNStatRec.(
+						STATS := leagueStatRec;
+						PeopleNames := peopleLoop;
+						level := loop1;
+						round := "e";
+						LinkID := formatJSON({
+								Stat: leagueStatRec.recID,
+								PeopleName: peopleLoop.recID
+							})
+					)
+				end
+			end
+		end;
+		"create round level records";
+		let roundsArray := unique(seasonResultRecs.'Round Type');
+		for loop2 in roundsArray do
+			let checkExistingRecs := peopleLoop.pnStats[STATS = leagueStatRec and level = "rd" and round = loop2];
+			if checkExistingRecs = 0 then
+				let newPNStatRec := (create pnStats);
+				newPNStatRec.(
+					STATS := leagueStatRec;
+					PeopleNames := peopleLoop;
+					level := "rd";
+					round := loop2;
+					LinkID := formatJSON({
+							Stat: leagueStatRec.recID,
+							PeopleName: peopleLoop.recID
+						})
+				)
+			end
+		end;
+		"create start order records";
+		let startorderByLeague := unique(seasonResultRecs.'Start Order');
+		for loop3 in startorderByLeague do
+			let getSORounds := unique(seasonResultRecs['Start Order' = loop3].'Round Type');
+			let soRoundArray := array(["e"], getSORounds);
+			"create round level recs";
+			for subloop3 in soRoundArray do
+				let checkExistingRecs := peopleLoop.pnStats[STATS = leagueStatRec and level = loop3 and round = subloop3];
+				if checkExistingRecs = 0 then
+					let newPNStatRec := (create pnStats);
+					newPNStatRec.(
+						STATS := leagueStatRec;
+						PeopleNames := peopleLoop;
+						level := loop3;
+						round := subloop3;
+						LinkID := formatJSON({
+								Stat: leagueStatRec.recID,
+								PeopleName: peopleLoop.recID
+							})
+					)
+				end
+			end
+		end
+	end
+end;
+#{create partnerStat rec for each Partner in Season}#;
+do as deferred
+	let partnerRecs := unique(Results[DNScheck = null].Partners);
+	for partnerLoop in partnerRecs do
+		let findRounds := unique(Results[Partners = partnerLoop and DNScheck = null].'Round Type');
+		let roundArray := array(["e"], findRounds);
+		"delete partnerLoop.partnerStats";
+		for partnerRoundLoop in roundArray do
+			let checkExisitingRecs := partnerLoop.partnerStats[STATS = leagueStatRec and round = partnerRoundLoop];
+			if checkExisitingRecs = 0 then
+				let newRec := (create partnerStats);
+				newRec.(
+					STATS := leagueStatRec;
+					Partners := partnerLoop;
+					level := if partnerRoundLoop = "e" then
+							"e"
+						else
+							"rn"
+						end;
+					round := partnerRoundLoop;
+					LinkID := formatJSON({
+							Stat: leagueStatRec.recID,
+							Partner: partnerLoop.recID
+						})
+				)
+			end
+		end
+	end
+end;
+"update Stat records";
+do as deferred
+	let atStatRecs := Points.ActiveTeams.atStats;
+	for loop2 in atStatRecs do
+		loop2.(
+			historical := null;
+			atm := loop2.latm;
+			finished := loop2.lfinished;
+			clears := loop2.lclears;
+			ROLs := loop2.lROLs;
+			penalties := loop2.lpenalties;
+			DNFs := loop2.lDNFs;
+			Wins := loop2.lWins;
+			QPnts := loop2.lQPnts;
+			QPlc := loop2.lQPlc;
+			GPPnts := loop2.lGPPnts;
+			GPPlc := loop2.lGPPlc
+		)
+	end
+end;
+do as deferred
+	let tmStatRecs := Results.TeamRiders.tmStats;
+	for loop3 in tmStatRecs do
+		loop3.(
+			historical := null;
+			atm := loop3.latm;
+			clears := loop3.lclears;
+			ROLs := loop3.lROLs;
+			penalties := loop3.lpenalties;
+			DNFs := loop3.lDNFs;
+			qualJO := loop3.lQualJO;
+			QPnts := loop3.lQPnts;
+			QPlc := loop3.lQPlc;
+			GPPnts := loop3.lGPPnts;
+			GPPlc := loop3.lGPPlc
+		)
+	end
+end;
+do as deferred
+	let tnStatRecs := Points.ActiveTeams.TeamNames.tnStats;
+	for loop4 in tnStatRecs do
+		loop4.(
+			historical := null;
+			atm := loop4.latm;
+			clears := loop4.lclears;
+			ROLs := loop4.lROLs;
+			penalties := loop4.lpenalties;
+			Wins := loop4.lWins
+		)
+	end
+end;
+do as deferred
+	let pnStatRecs := Results.TeamRiders.Rider.pnStats[league = leagueStatRec];
+	for loop5 in pnStatRecs do
+		loop5.(
+			historical := null;
+			atm := loop5.latm;
+			clears := loop5.lclears;
+			ROLs := loop5.lROLs;
+			penalties := loop5.lpenalties;
+			DNFs := loop5.lDNFs;
+			timePens := loop5.ltimePens;
+			Wins := loop5.lWins;
+			qualJO := loop5.lQualJO;
+			totalRails := loop5.lTotalRails;
+			verticals := loop5.lVerticals;
+			oxers := loop5.lOxers;
+			others := loop5.lOthers;
+			doubles := loop5.lDoubles;
+			triples := loop5.lTriples
+		)
+	end
+end
