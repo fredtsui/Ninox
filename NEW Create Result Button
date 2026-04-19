@@ -1,0 +1,259 @@
+#{updated button to create/update rider STATS on 2026/04}#;
+#{new Create Line button on Start Dashboard 2025/10/08}#;
+"set all variables";
+let t := this;
+let xLeagRec := record(Leagues,number(League));
+let xEventRec := record(Events,number(Event));
+let xselectedTeamRec := record(ActiveTeams,number(t.'Choose a Team'));
+let xTeamRec := xselectedTeamRec.TeamNames.Team;
+let xTMRec := record('Team Membership',number(t.'Select Team Member'));
+let xPartnerRec := record(Partners,number('Select Partner'));
+let riderResults := xEventRec.Results[TeamRiders = xTMRec];
+let teamResults := xEventRec.Results[TeamID = xselectedTeamRec.TeamID];
+let roundOne := if xEventRec.SuperCup then "Q" else "1" end;
+let roundOneRecs := xEventRec.Points.RoundAnalysis[round = roundOne];
+let selectedTeamRoundOneRec := first(xEventRec.Points[TeamID = xselectedTeamRec.TeamID].RoundAnalysis[round = roundOne]);
+let roundOneStartOrder := if sum(roundOneRecs.startOrder) = 0 then
+		1
+	else
+		last(sort(roundOneRecs.startOrder)) + 1
+	end;
+if selectedTeamRoundOneRec.startOrder = null then
+	selectedTeamRoundOneRec.(startOrder := roundOneStartOrder)
+end;
+if xEventRec != null then
+	#{create RiderEventSummary record}#;
+	let xRER := xTMRec.RiderEventSummary[TeamEventSummary.Location = xEventRec];
+	if count(xRER) = 0 then
+		let checkTeamSummaryAgain := xEventRec.Points[ActiveTeams = xselectedTeamRec];
+		let createRiderSummary := (create RiderEventSummary);
+		createRiderSummary.(
+			'Team Membership' := xTMRec;
+			TeamEventSummary := first(checkTeamSummaryAgain);
+			LinkID := formatJSON({
+					TeamMembership: xTMRec.recID,
+					TeamEventSummary: first(checkTeamSummaryAgain).recID
+				})
+		)
+	end;
+	#{create Result line}#;
+	let checkForExistingRec := switch xEventRec.leagueNum_calc do
+		case 1:
+			switch true do
+			case length(riderResults) = 0:
+				1
+			case length(riderResults['Round Type' = 1]) > 0 or
+			length(riderResults) = 0 and length(teamResults['Round Type' = 1]) = 2:
+				2
+			case length(riderResults['Round Type' = "F1"]) = 1:
+				3
+			case length(riderResults['Round Type' = "S"]) = 1:
+				4
+			case length(riderResults['Round Type' = "Q"]) = 1:
+				5
+			end
+		default:
+			if length(riderResults) = 0 or length(riderResults['Round Type' = 1]) = 1 then
+				1
+			end
+		end;
+	if checkForExistingRec > 0 then
+		let getTeamRoundAnalysis := (xEventRec.Points[TeamID = xTeamRec.TeamID].RoundAnalysis order by roundRank);
+		let SO := (
+				let xLastRound := first(getTeamRoundAnalysis);
+				if length(teamResults['Round Type' = xLastRound.round]) < 1 then
+					0
+				else
+					length(teamResults['Round Type' = xLastRound.round])
+				end
+			);
+		let xTime := length(Time);
+		let subxL := substring(Time, xTime - 2, xTime);
+		let subxR := substring(Time, 0, xTime - 2);
+		let newResult := (create Results);
+		newResult.(
+			Location := xEventRec;
+			TeamRiders := xTMRec;
+			Partners := xPartnerRec;
+			'Round Type' := first(getTeamRoundAnalysis.round);
+			'Start Order' := SO + 1;
+			Penalty := t.Penalties;
+			Time := if Time != t.Time then
+					number(subxR + "." + subxL)
+				end;
+			if t.Penalties = 9999 then
+				Reason := text(t.Reason)
+			end;
+			LinkID := formatJSON({
+					Event: xEventRec.recID,
+					TeamMembership: xTMRec.recID,
+					Partner: xPartnerRec.recID
+				})
+		);
+		do as deferred
+			#{check tmStats}#;
+			let getTMStats := xTMRec.tmStats;
+			#{check for round e stats}#;
+			if length(getTMStats[round = "e"]) = 0 then
+				for loop1 in ["e", "rd"] do
+					let newStatRec := (create tmStats);
+					newStatRec.(
+						STATS := first(xLeagRec.STATS);
+						'Team Membership' := xTMRec;
+						level := loop1;
+						round := "e";
+						LinkID := formatJSON({
+								STAT: first(xLeagRec.STATS).recID,
+								TeamMembership: xTMRec.recID,
+								Partner: Partners.recID
+							})
+					)
+				end
+			end;
+			#{check for round type stats}#;
+			let xRnd := first(getTeamRoundAnalysis.round);
+			if length(getTMStats[level = "rd" and round = xRnd]) = 0 then
+				let newStatRec := (create tmStats);
+				newStatRec.(
+					STATS := first(xLeagRec.STATS);
+					'Team Membership' := xTMRec;
+					level := "rd";
+					round := xRnd;
+					LinkID := formatJSON({
+							STAT: first(xLeagRec.STATS).recID,
+							TeamMembership: xTMRec.recID,
+							Partner: Partners.recID
+						})
+				)
+			end;
+			"Create Start Order stat recs";
+			let checkExistingRoundRec := getTMStats[level = SO + 1 and round = xRnd];
+			if checkExistingRoundRec = 0 and (xRnd != "1PO" and xRnd != "3PO") then
+				let newStatRec := (create tmStats);
+				newStatRec.(
+					STATS := first(xLeagRec.STATS);
+					'Team Membership' := xTMRec;
+					level := SO + 1;
+					round := xRnd;
+					LinkID := formatJSON({
+							STAT: first(xLeagRec.STATS).recID,
+							TeamMembership: xTMRec.recID,
+							Partner: Partners.recID
+						})
+				)
+			end;
+			#{Create/Check TM Partner Stat}#;
+			let horseRoundArray := ["e", xRnd];
+			"create round level records by Partner";
+			for tmHorseRdLoop in horseRoundArray do
+				let checkExistingRoundRec := getTMStats[Partners = xPartnerRec and round = tmHorseRdLoop];
+				if checkExistingRoundRec = 0 then
+					let newStatRec := (create tmStats);
+					newStatRec.(
+						STATS := first(xLeagRec.STATS);
+						'Team Membership' := xTMRec;
+						Partners := xPartnerRec;
+						level := "h";
+						round := tmHorseRdLoop;
+						AgeOfHorse := year(today()) - xPartnerRec.Horse.'Birth Year';
+						LinkID := formatJSON({
+								STAT: first(xLeagRec.STATS).recID,
+								TeamMembership: xTMRec.recID,
+								Partner: xPartnerRec.recID
+							})
+					)
+				end
+			end;
+			"Create/Check for PeopleName stats";
+			let peopleNameRec := xTMRec.Rider;
+			let levelArray := switch League do
+				case 2:
+					["e"]
+				default:
+					["e", "rd"]
+				end;
+			"create event level records";
+			for loop1 in levelArray do
+				let checkExistingRecs := peopleNameRec.pnStats[STATS = first(xLeagRec.STATS) and level = loop1 and round = "e"];
+				if checkExistingRecs = 0 then
+					let newPNStatRec := (create pnStats);
+					newPNStatRec.(
+						STATS := first(xLeagRec.STATS);
+						PeopleNames := peopleNameRec;
+						level := loop1;
+						round := "e";
+						LinkID := formatJSON({
+								Stat: first(xLeagRec.STATS).recID,
+								PeopleName: peopleNameRec.recID
+							})
+					)
+				end
+			end;
+			"create round level records";
+			let checkExistingRecs := peopleNameRec.pnStats[STATS = xLeagRec.STATS and level = "rd" and round = xRnd];
+			if checkExistingRecs = 0 then
+				let newPNStatRec := (create pnStats);
+				newPNStatRec.(
+					STATS := first(xLeagRec.STATS);
+					PeopleNames := peopleNameRec;
+					level := "rd";
+					round := xRnd;
+					LinkID := formatJSON({
+							Stat: first(xLeagRec.STATS).recID,
+							PeopleName: peopleNameRec.recID
+						})
+				)
+			end;
+			"create start order records";
+			let soRoundArray := ["e", xRnd];
+			"create round level recs";
+			for subloop3 in soRoundArray do
+				let checkExistingRecs := peopleNameRec.pnStats[STATS = first(xLeagRec.STATS) and level = SO + 1 and round = subloop3];
+				if checkExistingRecs = 0 then
+					let newPNStatRec := (create pnStats);
+					newPNStatRec.(
+						STATS := first(xLeagRec.STATS);
+						PeopleNames := peopleNameRec;
+						level := SO + 1;
+						round := subloop3;
+						LinkID := formatJSON({
+								Stat: first(xLeagRec.STATS).recID,
+								PeopleName: peopleNameRec.recID
+							})
+					)
+				end
+			end;
+			"Create/Check Partner stats";
+			let roundArray := ["e", xRnd];
+			for partnerRoundLoop in roundArray do
+				let checkExisitingRecs := xPartnerRec.partnerStats[STATS = first(xLeagRec.STATS) and round = partnerRoundLoop];
+				if checkExisitingRecs = 0 then
+					let newRec := (create partnerStats);
+					newRec.(
+						STATS := first(xLeagRec.STATS);
+						Partners := xPartnerRec;
+						level := if partnerRoundLoop = "e" then
+								"e"
+							else
+								"rn"
+							end;
+						round := partnerRoundLoop;
+						LinkID := formatJSON({
+								Stat: first(xLeagRec.STATS).recID,
+								Partner: xPartnerRec.recID
+							})
+					)
+				end
+			end
+		end
+	else
+		alert("No new record needed.")
+	end
+else
+	alert("Please select an event")
+end;
+'Select Team Member' := null;
+'Select Partner' := null;
+Penalties := null;
+Time := null;
+Reason := null
