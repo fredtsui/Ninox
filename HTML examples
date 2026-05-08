@@ -1,3 +1,4 @@
+ui.popupRecord() if called from a Page then you need the tableID as well. otherwise you can just use the recordID.
 ---Three Dash and ui.popupRecord---
 let tbleBody := xNewData.---
 		<tr onclick=ui.popupRecord('{ dID }','{ rID }')>
